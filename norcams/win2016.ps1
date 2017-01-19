@@ -33,7 +33,7 @@ $virtIODownloadLink = "https://fedorapeople.org/groups/virt/virtio-win/direct-do
 # Extra drivers path contains the drivers for the baremetal nodes
 # Examples: Chelsio NIC Drivers, Mellanox NIC drivers, LSI SAS drivers, etc.
 # The cmdlet will recursively install all the drivers from the folder and subfolders
-$extraDriversPath = "C:\os-drivers\drivers\"
+$extraDriversPath = "C:\os-builder\drivers\"
 
 # Every Windows ISO can contain multiple Windows flavors like Core, Standard, Datacenter
 # Usually, the second image version is the Standard one
