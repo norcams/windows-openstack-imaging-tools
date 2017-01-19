@@ -50,5 +50,5 @@ New-WindowsOnlineImage -WimFilePath $wimFilePath -ImageName $image.ImageName `
     -ProductKey $productKey -DiskLayout 'BIOS' -VirtioISOPath $virtIOISOPath `
     -ExtraDriversPath $extraDriversPath `
     -InstallUpdates:$true -AdministratorPassword 'Pa$$w0rd' `
-    -PurgeUpdates:$true -DisableSwap:$true
+    -PurgeUpdates:$true -DisableSwap:$true -Force:$true
 
