@@ -14,7 +14,7 @@
 
 $ErrorActionPreference = "Stop"
 
-git submodule update --init
+#git submodule update --init
 Import-Module ..\WinImageBuilder.psm1
 
 # The Windows image file path that will be generated
