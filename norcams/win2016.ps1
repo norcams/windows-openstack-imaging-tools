@@ -18,7 +18,7 @@ $ErrorActionPreference = "Stop"
 Import-Module ..\WinImageBuilder.psm1
 
 # The Windows image file path that will be generated
-$windowsImagePath = "C:\os-builder\win2016-server.qcow2"
+$windowsImagePath = "C:\os-builder\images\win2016-server.qcow2"
 
 # The wim file path is the installation image on the Windows ISO
 $wimFilePath = "D:\Sources\install.wim"
