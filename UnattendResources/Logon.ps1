@@ -360,8 +360,8 @@ try
     $purgeUpdates = Get-IniFileValue -Path $configIniPath -Section "DEFAULT" -Key "PurgeUpdates" -Default $false -AsBoolean
     $disableSwap = Get-IniFileValue -Path $configIniPath -Section "DEFAULT" -Key "DisableSwap" -Default $false -AsBoolean
     $softwareInstall = Get-IniFileValue -Path $configIniPath -Section "DEFAULT" -Key "SoftwareInstall" -Default $false -AsBoolean
-    $softwareList = Get-IniFileValue -Path $configIniPath -Section "DEFAULT" -Key "SoftwareList" -Default "c:\software.ps1" -AsBoolean:$false
-    $softwareCreds = Get-IniFileValue -Path $configIniPath -Section "DEFAULT" -Key "SoftwareCreds" -Default "c:\softwarecreds.txt" -AsBoolean:$false
+    $softwareList = Get-IniFileValue -Path $configIniPath -Section "DEFAULT" -Key "SoftwareList" -Default "software.ps1" -AsBoolean:$false
+    $softwareCreds = Get-IniFileValue -Path $configIniPath -Section "DEFAULT" -Key "SoftwareCreds" -Default "softwarecreds.txt" -AsBoolean:$false
 
     if ($installUpdates) {
         Install-WindowsUpdates
@@ -380,7 +380,7 @@ try
     }
 
     if ($installSoftware) {
-        installSoftware -SoftwareList $softwareList -SoftwareCreds $softwareCreds
+        installSoftware -SoftwareList $resourcesDir\$softwareList -SoftwareCreds $resourcesDir\$softwareCreds
     }
 
     $Host.UI.RawUI.WindowTitle = "Installing Cloudbase-Init..."
