@@ -183,6 +183,29 @@ function Disable-Swap {
     }
 }
 
+function installSoftware {
+  [CmdletBinding()]
+  Param(
+    [parameter(Mandatory=$true)]
+    [string]$SoftwareList = "c:\softwarelist.ps1",
+    [parameter(Mandatory=$true)]
+    [string]$SoftwareCreds = "c:\softwarecreds.txt"
+  )
+
+  Get-Content $SoftwareCreds | Foreach-Object{
+     $var = $_.Split('=')
+     New-Variable -Name $var[0] -Value $var[1]
+  }
+
+  $sharePassSec = $sharePass | ConvertTo-SecureString -asPlainText -Force
+  $shareCredential = New-Object System.Management.Automation.PSCredential($shareUser,$sharePassSec)
+
+  New-PSDrive -Name "K" -PSProvider FileSystem -Root "\\gimle.klient.uib.no\msidistro" -Persist -Credential $shareCredential
+  New-PSDrive -Name "L" -PSProvider FileSystem -Root "\\sc12-dp.klient.uib.no\sc12-src" -Persist -Credential $shareCredential
+
+  Import-Module $SoftwareList
+}
+
 function UH_IaaS {
   # Enable linux clients to log on via RDP
   (Get-WmiObject -class Win32_TSGeneralSetting -Namespace root\cimv2\terminalservices -ComputerName $env:ComputerName -Filter "TerminalName='RDP-tcp'").SetUserAuthenticationRequired(0)
@@ -336,6 +359,9 @@ try
     $persistDrivers = Get-IniFileValue -Path $configIniPath -Section "DEFAULT" -Key "PersistDriverInstall" -Default $true -AsBoolean
     $purgeUpdates = Get-IniFileValue -Path $configIniPath -Section "DEFAULT" -Key "PurgeUpdates" -Default $false -AsBoolean
     $disableSwap = Get-IniFileValue -Path $configIniPath -Section "DEFAULT" -Key "DisableSwap" -Default $false -AsBoolean
+    $softwareInstall = Get-IniFileValue -Path $configIniPath -Section "DEFAULT" -Key "SoftwareInstall" -Default $false -AsBoolean
+    $softwareList = Get-IniFileValue -Path $configIniPath -Section "DEFAULT" -Key "SoftwareList" -Default "c:\software.ps1" -AsBoolean:$false
+    $softwareCreds = Get-IniFileValue -Path $configIniPath -Section "DEFAULT" -Key "SoftwareCreds" -Default "c:\softwarecreds.txt" -AsBoolean:$false
 
     if ($installUpdates) {
         Install-WindowsUpdates
@@ -351,6 +377,10 @@ try
 
     if ($UH_IaaS_settings) {
         UH_IaaS
+    }
+
+    if ($installSoftware) {
+        installSoftware -SoftwareList $softwareList -SoftwareCreds $softwareCreds
     }
 
     $Host.UI.RawUI.WindowTitle = "Installing Cloudbase-Init..."
