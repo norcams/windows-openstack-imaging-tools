@@ -359,7 +359,7 @@ try
     $persistDrivers = Get-IniFileValue -Path $configIniPath -Section "DEFAULT" -Key "PersistDriverInstall" -Default $true -AsBoolean
     $purgeUpdates = Get-IniFileValue -Path $configIniPath -Section "DEFAULT" -Key "PurgeUpdates" -Default $false -AsBoolean
     $disableSwap = Get-IniFileValue -Path $configIniPath -Section "DEFAULT" -Key "DisableSwap" -Default $false -AsBoolean
-    $softwareInstall = Get-IniFileValue -Path $configIniPath -Section "DEFAULT" -Key "SoftwareInstall" -Default $false -AsBoolean$false
+    $softwareInstall = Get-IniFileValue -Path $configIniPath -Section "DEFAULT" -Key "SoftwareInstall" -Default $false -AsBoolean:$false
     $softwareList = Get-IniFileValue -Path $configIniPath -Section "DEFAULT" -Key "SoftwareList" -Default "software.ps1" -AsBoolean:$false
     $softwareCreds = Get-IniFileValue -Path $configIniPath -Section "DEFAULT" -Key "SoftwareCreds" -Default "softwarecreds.txt" -AsBoolean:$false
 
