@@ -379,7 +379,7 @@ try
         UH_IaaS
     }
 
-    if ($installSoftware) {
+    if ($softwareInstall) {
         installSoftware -SoftwareList $resourcesDir\$softwareList -SoftwareCreds $resourcesDir\$softwareCreds
     }
 
