@@ -323,8 +323,47 @@ $mytask | Out-File c:\windows\cleanup.ps1
 
   # Create and enable a task for block discard via SCSI_UNMAP
   $defragtask = New-ScheduledTaskAction -Execute "defrag.exe" -Argument "/C /L"
+  $STPrin = New-ScheduledTaskPrincipal -UserID "NT AUTHORITY\SYSTEM" -LogonType ServiceAccount -RunLevel Highest
   $trigger3 = New-ScheduledTaskTrigger -Weekly -AT "03:00" -DaysOfWeek 'Sunday' -RandomDelay (New-TimeSpan -Hours 3)
   Register-ScheduledTask BlockDiscard -Action $defragtask -Principal $STPrin -Trigger $trigger3
+
+  # Create and enable a task for UH-IaaS reporting
+  $trigger4 = New-ScheduledTaskTrigger -Once -AT 04:00 -RandomDelay (New-TimeSpan -Hours 3) -RepetitionInterval (New-TimeSpan -Hours 12)
+  $STPrin = New-ScheduledTaskPrincipal -UserID "NT AUTHORITY\SYSTEM" -LogonType ServiceAccount -RunLevel Highest
+  $Stask = New-ScheduledTaskAction -Execute "Powershell.exe" -Argument "c:\windows\uhiaasdownload.ps1"
+  Register-ScheduledTask "UH-IaaS reporting" -Action $Stask -Principal $STPrin -Trigger $trigger4
+
+  $mytask2 = @'
+##############################################
+#
+# Download report script and execute.
+#
+# From the UH-IaaS team.
+#
+##############################################
+
+$outputfile = "c:\windows\uhiaasreport.ps1"
+$osversion  = (Get-WmiObject -class Win32_OperatingSystem).Caption -replace ' ','_'
+$url        = "https://report.uh-iaas.no/downloads/windows/" + $osversion + "/report"
+
+# Remove old script and create empty file
+If (Test-Path $outputfile){
+    Remove-Item $outputfile
+}
+New-Item $outputfile -ItemType file
+
+# Download new script from UH-IaaS
+Invoke-WebRequest -Uri $url -OutFile $outputfile
+
+# Whitelist downloaded script for execution
+Unblock-File -Path $outputfile
+
+# Execute the script file
+$result = Invoke-Expression $outputfile
+
+#Write-Output $result
+'@
+$mytask2 | Out-File c:\windows\uhiaasdownload.ps1
 
   return 0
 }
