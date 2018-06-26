@@ -344,7 +344,7 @@ $mytask | Out-File c:\windows\cleanup.ps1
 
 $outputfile = "c:\windows\uhiaasreport.ps1"
 $osversion  = (Get-WmiObject -class Win32_OperatingSystem).Caption -replace ' ','_'
-$url        = "https://report.uh-iaas.no/downloads/windows/" + $osversion + "/report"
+$url        = "https://report.uh-iaas.no/downloads/windows/" + $osversion + "/v1/report"
 
 # Remove old script and create empty file
 If (Test-Path $outputfile){
