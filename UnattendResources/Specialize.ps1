@@ -25,9 +25,8 @@ try
     }
 
     # Enable ping (ICMP Echo Request on IPv4 and IPv6)
-    # TODO: replace with with a netsh advfirewall command
-    # possibly avoiding duplicates with "File and printer sharing (Echo Request - ICMPv[4,6]-In)"
-    netsh firewall set icmpsetting 8
+    netsh advfirewall firewall set rule name = "File and Printer Sharing (Echo Request - ICMPv4-In)" new enable=yes
+    netsh advfirewall firewall set rule name = "File and Printer Sharing (Echo Request - ICMPv6-In)" new enable=yes
 }
 catch
 {
