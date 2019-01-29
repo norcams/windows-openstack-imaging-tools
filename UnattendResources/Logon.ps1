@@ -209,6 +209,9 @@ function UH_IaaS {
   $Stask = New-ScheduledTaskAction -Execute "Powershell.exe" -Argument "c:\windows\cleanup.ps1"
   Register-ScheduledTask Cleanup -Action $Stask -Principal $STPrin -Trigger $trigger2
 
+  # Disable startup of Server Manager on Logon
+  Disable-ScheduledTask -TaskName "\Microsoft\Windows\Server Manager\ServerManager"
+
   $mytask = @'
 Function Cleanup { 
 <# 
