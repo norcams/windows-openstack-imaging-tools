@@ -236,16 +236,17 @@ $winbuild=$([System.Environment]::OSVersion.Version.Build)
 if ($winbuild -gt 17760) {
   Write-Host "Build is 2019 or newer"
   Add-WindowsCapability -Online -Name OpenSSH.Server~~~~0.0.1.0
+  Set-Service sshd -StartupType Automatic
+  Set-Service ssh-agent -StartupType Automatic
+  Start-Service sshd
+  Start-Service ssh-agent
   $line = Get-Content "C:\ProgramData\ssh\sshd_config" | Select-String "Match Group administrators" | Select-Object -ExpandProperty Line
   $line2 = Get-Content "C:\ProgramData\ssh\sshd_config" | Select-String "AuthorizedKeysFile __PROGRAMDATA__/ssh/administrators" | Select-Object -ExpandProperty Line
   $sshconfig = Get-Content "C:\ProgramData\ssh\sshd_config"
   $sshconfig | ForEach-Object {$_ -replace $line,"#Match Group administrators"} | Set-Content "C:\ProgramData\ssh\sshd_config"
   $sshconfig = Get-Content "C:\ProgramData\ssh\sshd_config"
   $sshconfig | ForEach-Object {$_ -replace $line2,"#       AuthorizedKeysFile __PROGRAMDATA__/ssh/administrators_authorized_keys"} | Set-Content "C:\ProgramData\ssh\sshd_config"
-  Set-Service sshd -StartupType Automatic
-  Set-Service ssh-agent -StartupType Automatic
-  Start-Service sshd
-  Start-Service ssh-agent
+  Restart-Service sshd
   }
 Else {Write-Host "Build is to old for ssh server"}
 '@
