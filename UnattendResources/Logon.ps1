@@ -209,8 +209,47 @@ function UH_IaaS {
   $Stask = New-ScheduledTaskAction -Execute "Powershell.exe" -Argument "c:\windows\cleanup.ps1"
   Register-ScheduledTask Cleanup -Action $Stask -Principal $STPrin -Trigger $trigger2
 
-  # Disable startup of Server Manager on Logon
-  Disable-ScheduledTask -TaskName "\Microsoft\Windows\Server Manager\ServerManager"
+  # Disable startup of Server Manager on Logon on non-core installs
+  $winedition = $(Get-WindowsEdition -Online).Edition
+  if ($winedition -eq "ServerStandard") {
+    Disable-ScheduledTask -TaskName "\Microsoft\Windows\Server Manager\ServerManager"
+  }
+
+  $startuptask = @'
+# Disable Administrator Account
+Disable-LocalUser -Name "Administrator"
+
+# Force the local interface to use the "public" profile
+Set-NetConnectionProfile -Name "Network" -NetworkCategory Public
+
+$kmsserver="tjur.uib.no"
+$nettest=(Test-NetConnection -ComputerName $kmsserver -Port 1688)
+if ($nettest.TcpTestSucceeded -eq $true)
+  {Write-Host "Connection to kms host succesful - trying to activate windows."
+  cscript c:\windows\system32\slmgr.vbs /skms $kmsserver
+  cscript c:\windows\system32\slmgr.vbs /ato }
+Else {Write-Host "Connection to kms host failed - not activating."}
+
+# Enable and start ssh if Windows Version is 2019 or newer
+# Comment out two lines in default sshd_config to enable passwordless logon
+$winbuild=$([System.Environment]::OSVersion.Version.Build)
+if ($winbuild -gt 17760) {
+  Write-Host "Build is 2019 or newer"
+  Add-WindowsCapability -Online -Name OpenSSH.Server~~~~0.0.1.0
+  $line = Get-Content "C:\ProgramData\ssh\sshd_config" | Select-String "Match Group administrators" | Select-Object -ExpandProperty Line
+  $line2 = Get-Content "C:\ProgramData\ssh\sshd_config" | Select-String "AuthorizedKeysFile __PROGRAMDATA__/ssh/administrators" | Select-Object -ExpandProperty Line
+  $sshconfig = Get-Content "C:\ProgramData\ssh\sshd_config"
+  $sshconfig | ForEach-Object {$_ -replace $line,"#Match Group administrators"} | Set-Content "C:\ProgramData\ssh\sshd_config"
+  $sshconfig = Get-Content "C:\ProgramData\ssh\sshd_config"
+  $sshconfig | ForEach-Object {$_ -replace $line2,"#       AuthorizedKeysFile __PROGRAMDATA__/ssh/administrators_authorized_keys"} | Set-Content "C:\ProgramData\ssh\sshd_config"
+  Set-Service sshd -StartupType Automatic
+  Set-Service ssh-agent -StartupType Automatic
+  Start-Service sshd
+  Start-Service ssh-agent
+  }
+Else {Write-Host "Build is to old for ssh server"}
+'@
+$startuptask | Out-File "C:\Program Files\Cloudbase Solutions\Cloudbase-Init\LocalScripts\extraconf.ps1"
 
   $mytask = @'
 Function Cleanup { 
@@ -391,10 +430,6 @@ try
         Install-WindowsUpdates
     }
 
-    if ($UH_IaaS_settings) {
-        UH_IaaS
-    }
-
     $Host.UI.RawUI.WindowTitle = "Installing Cloudbase-Init..."
 
     $programFilesDir = $ENV:ProgramFiles
@@ -407,6 +442,10 @@ try
     $p = Start-Process -Wait -PassThru -FilePath msiexec -ArgumentList "/i $CloudbaseInitMsiPath /qn /l*v $CloudbaseInitMsiLog LOGGINGSERIALPORTNAME=$serialPortName"
     if ($p.ExitCode -ne 0) {
         throw "Installing $CloudbaseInitMsiPath failed. Log: $CloudbaseInitMsiLog"
+    }
+
+    if ($UH_IaaS_settings) {
+        UH_IaaS
     }
 
     $Host.UI.RawUI.WindowTitle = "Running SetSetupComplete..."
