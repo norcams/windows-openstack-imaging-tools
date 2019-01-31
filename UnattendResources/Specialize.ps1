@@ -27,6 +27,9 @@ try
     # Enable ping (ICMP Echo Request on IPv4 and IPv6)
     netsh advfirewall firewall set rule name = "File and Printer Sharing (Echo Request - ICMPv4-In)" new enable=yes
     netsh advfirewall firewall set rule name = "File and Printer Sharing (Echo Request - ICMPv6-In)" new enable=yes
+
+    # Disable Network discovery
+    netsh advfirewall firewall set rule group = "Network Discovery" new enable=No
 }
 catch
 {
