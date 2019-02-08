@@ -1327,12 +1327,30 @@ function New-WindowsCloudImage {
         Set-DotNetCWD
         Is-Administrator
 
-        $image = Get-WimFileImagesInfo -WimFilePath $wimFilePath | `
-            Where { $_.ImageName -eq $ImageName }
+        $image = $(Get-WindowsImage -ImagePath $wimFilePath -Name $ImageName) 
+        
+        # Return expected arch string
+        if ($image.Architecture -eq 9) {
+          $ourArch = "AMD64" }
+        else { $ourArch = "x86" }
+        
+        # Create elements for version object
+        $ImageVersion = $image.Version
+        $ImageVersion += @()
+        Add-Member -InputObject $image -NotePropertyName ImageInstallationType -NotePropertyValue $image.InstallationType
+        Add-Member -InputObject $image -NotePropertyName ImageArchitecture -NotePropertyValue $ourArch
+        Add-Member -InputObject $image -NotePropertyName ImageVersion -NotePropertyValue ([PSCustomObject]$ImageVersion)
+        $image.ImageVersion | Add-Member -NotePropertyName Major -NotePropertyValue $image.MajorVersion
+        $image.ImageVersion | Add-Member -NotePropertyName Minor -NotePropertyValue $image.MinorVersion
+        $image.ImageVersion | Add-Member -NotePropertyName Build -NotePropertyValue $image.Build
+        $image.ImageVersion | Add-Member -NotePropertyName Revision -NotePropertyValue $image.SPBuild
+
+#        $image = Get-WimFileImagesInfo -WimFilePath $wimFilePath | `
+#            Where { $_.ImageName -eq $ImageName }
         if (!$image) {
             throw 'Image "$ImageName" not found in WIM file "$WimFilePath"'
         }
-        Check-DismVersionForImage $image
+#        Check-DismVersionForImage $image
 
         if (Test-Path $VirtualDiskPath) {
             Remove-Item -Force $VirtualDiskPath
@@ -1371,7 +1389,7 @@ function New-WindowsCloudImage {
             Download-CloudbaseInit $resourcesDir ([string]$image.ImageArchitecture) -BetaRelease:$BetaRelease
             Apply-Image $winImagePath $wimFilePath $image.ImageIndex
             Create-BCDBootConfig $drives[0] $drives[1] $DiskLayout $image
-            Check-EnablePowerShellInImage $winImagePath $image
+#            Check-EnablePowerShellInImage $winImagePath $image
 
             if ($ExtraDriversPath -and (Test-Path $ExtraDriversPath)) {
                 Add-DriversToImage $winImagePath $ExtraDriversPath
